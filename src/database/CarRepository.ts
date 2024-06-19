@@ -1,7 +1,7 @@
 import { executeTransaction } from "./SQLiteDatabase";
 
 export type Car = {
-  id?: number;
+  id: number;
   brand: string;
   model: string;
   hp: number;
@@ -32,6 +32,32 @@ export default class CarRepository {
 
   public async all() {
     const result = await executeTransaction("SELECT * FROM cars");
+    return result.rows._array;
+  }
+
+  public async deleteCar(id: number): Promise<void> {
+    await executeTransaction("DELETE FROM cars WHERE id = ?;", [id]);
+  }
+
+  public async findByModel(model: string): Promise<Car[]> {
+    const result = await executeTransaction(
+      "SELECT * FROM cars WHERE model LIKE ?;",
+      [`%${model}%`]
+    );
+    return result.rows._array;
+  }
+
+  public async updateCar(car: Car): Promise<void> {
+    await executeTransaction("UPDATE cars SET brand = ?, model = ?, hp = ? WHERE id = ?;", [
+      car.brand, car.model, car.hp, car.id
+    ]);
+  }
+
+  public async findByHpRange(minHp: number, maxHp: number): Promise<Car[]> {
+    const result = await executeTransaction(
+      "SELECT * FROM cars WHERE hp BETWEEN ? AND ?;",
+      [minHp, maxHp]
+    );
     return result.rows._array;
   }
 }
